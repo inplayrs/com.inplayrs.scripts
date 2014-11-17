@@ -14,8 +14,10 @@ import sys
 import inspect
 import pymysql            # MySQL DB connection
 from lxml import etree    # xml parsing
-from base64 import decodestring
+from base64 import decodebytes
 from boto.s3.connection import S3Connection
+from boto.s3.key import Key
+from io import BytesIO
 
 # Add the parent directory to sys.path so we can import local modules
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -50,7 +52,7 @@ db.autocommit(1)
 
 # Create Amazon S3 connection (used for storing images)
 s3conn = S3Connection(config.Amazon.AWS_ACCESS_KEY_ID, config.Amazon.AWS_SECRET_ACCESS_KEY)
-
+s3bucket = s3conn.get_bucket('storage.inplayrs.com', validate=False) # No need to validate as we know this bucket exists
 
 ############################### GLOBAL VARIABLES ############################### 
 
@@ -127,15 +129,24 @@ def processTeam(team):
         logger.info("Team already exists in DB with team_id "+str(teams.get(teamName)))
 
 
-    # Save team image
+    # Save team image to file
+    #if (len(metadata.XPath.Team_Image(team)) > 0 ):
+    #    fh = open("/var/tmp/inplayrs/files/images/teams/"+str(teams[teamName])+".jpg", "wb")
+    #    logger.info("Saving team image")
+    #    fh.write(decodebytes(str(metadata.XPath.Team_Image(team)[0].text).encode('ascii')))
+    #    fh.close()
+    #else:
+    #    logger.info("No team image found")
+        
+    # Save team image to Amazon S3
     if (len(metadata.XPath.Team_Image(team)) > 0 ):
         logger.info("Saving team image")
-        fh = open("/var/tmp/inplayrs/files/images/teams/"+str(teams[teamName])+".jpg", "wb")
-        fh.write(decodestring(str(metadata.XPath.Team_Image(team)[0].text).encode('ascii')))
-        fh.close()
+        k = Key(s3bucket)
+        k.key = 'images/teams/'+str(teams[teamName])+'.jpg'
+        k.set_contents_from_file(BytesIO(decodebytes(str(metadata.XPath.Team_Image(team)[0].text).encode('ascii')))) 
     else:
         logger.info("No team image found")
-
+            
     # Cycle through the squad and inert into the player table if they do not already exist
     for player in metadata.XPath.Team_Players(team):
         processPlayer(player, teams[teamName])
@@ -232,15 +243,9 @@ def insertDataSourceMapping(data_source, table, internal_id, external_id):
 logger.info("Importing team data.  data_source_id="+str(args.data_source_id)+", external_comp_id="+str(args.external_comp_id)+
              ", internal_comp_id="+str(args.internal_comp_id)+", env="+args.env+", input_file="+args.input_file)
 
-
-
-
-
 # Load existing team data for this competition
 cursor = db.cursor()
-
 getExistingTeamsForCompSql = "SELECT team_id, name FROM team WHERE competition = %s"
-
 cursor.execute(getExistingTeamsForCompSql, args.internal_comp_id)
 
 for row in cursor.fetchall():
@@ -251,11 +256,9 @@ cursor.close()
 
 # Load existing player data for this competition
 cursor = db.cursor()
-
 getExistingPlayersForCompSql = '''SELECT p.player_id, p.name, p.team 
 FROM player p LEFT JOIN team t on p.team = t.team_id 
 WHERE t.competition = %s'''
-
 cursor.execute(getExistingPlayersForCompSql, args.internal_comp_id)
 
 for row in cursor.fetchall():
@@ -266,10 +269,8 @@ cursor.close()
 
 # Load existing data_source_mappings for team and player table
 cursor = db.cursor()
-
 getDataSourceMappingsSql = '''SELECT m.table, m.external_id, m.internal_id, m.mapping_id FROM data_source_mapping m
 WHERE m.data_source = %s AND m.table IN ('team', 'player')'''
-
 cursor.execute(getDataSourceMappingsSql, args.data_source_id)
 
 for row in cursor.fetchall():
@@ -281,7 +282,6 @@ for row in cursor.fetchall():
 cursor.close()
 
 
-
 # Load file and process each team
 context = etree.iterparse(args.input_file, events=('end',), tag='team')
 
@@ -291,23 +291,4 @@ fast_iter(context, processTeam)
 # Close DB & Amazon S3 Connections
 db.close()
 s3conn.close()
-
-
-
-'''
-Example xpaths:
-
-teams/team/
-          /leagues/league_id
-          /venue_name
-          /venue_capacity
-          /image
-          /squad/player
-          
-          # e.g. Premier League 2014/15 Goalserve ID = 1204
-''' 
-
-
-
-
 
