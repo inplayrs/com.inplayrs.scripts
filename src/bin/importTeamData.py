@@ -123,9 +123,7 @@ def processTeam(team):
     # Save team image to Amazon S3
     if (len(metadata.XPath.Team_Image(team)) > 0 ):
         logger.info("Saving team image")
-        k = Key(s3bucket)
-        k.key = 'images/teams/'+str(teams[teamName])+'.jpg'
-        k.set_contents_from_file(BytesIO(decodebytes(str(metadata.XPath.Team_Image(team)[0].text).encode('ascii')))) 
+        IPUtils.saveBase64EncodedStringToAmazonS3(metadata.XPath.Team_Image(team)[0].text, 'images/teams/'+str(teams[teamName])+'.jpg', s3bucket)
     else:
         logger.info("No team image found")
             
