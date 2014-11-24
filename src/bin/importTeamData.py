@@ -28,6 +28,7 @@ sys.path.insert(0,parentdir)
 import config.Config
 import config.Amazon
 import metadata.XPath
+import util.IPUtils as IPUtils
 
 # Parse command line arguments
 parser = argparse.ArgumentParser()
@@ -67,15 +68,6 @@ teamDataSourceMappings = {}
 playerDataSourceMappings = {}
 
 ################################## FUNCTIONS ################################### 
-
-# Function to iterate through an xml file, applying a function to each element
-def fast_iter(context, func):
-    for event, elem in context:
-        func(elem)
-        elem.clear()
-        while elem.getprevious() is not None:
-            del elem.getparent()[0]
-    del context
     
     
 #
@@ -128,16 +120,6 @@ def processTeam(team):
     else:
         logger.info("Team already exists in DB with team_id "+str(teams.get(teamName)))
 
-
-    # Save team image to file
-    #if (len(metadata.XPath.Team_Image(team)) > 0 ):
-    #    fh = open("/var/tmp/inplayrs/files/images/teams/"+str(teams[teamName])+".jpg", "wb")
-    #    logger.info("Saving team image")
-    #    fh.write(decodebytes(str(metadata.XPath.Team_Image(team)[0].text).encode('ascii')))
-    #    fh.close()
-    #else:
-    #    logger.info("No team image found")
-        
     # Save team image to Amazon S3
     if (len(metadata.XPath.Team_Image(team)) > 0 ):
         logger.info("Saving team image")
@@ -285,7 +267,7 @@ cursor.close()
 # Load file and process each team
 context = etree.iterparse(args.input_file, events=('end',), tag='team')
 
-fast_iter(context, processTeam)
+IPUtils.fast_iter(context, processTeam)
 
 
 # Close DB & Amazon S3 Connections
