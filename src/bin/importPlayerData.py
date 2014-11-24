@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 '''
 Created on 22 Nov 2014
-
 @author: chris
+
+Description: Used to import player data such as images.  Only processes players for which we have ID mappings after loading team data 
+
+Steps:
+1. Download the player data from http://www.goalserve.com/xml/players.zip
+2. Unzip the player data into a folder (e.g. /var/tmp/inplayrs/files)
+3. Process each file in turn (attackers.xml, defenders.xml, midfielders.xml, goalkeepers.xml)
+   e.g: importPlayerData.py 1 local /var/tmp/inplayrs/files/players/midfielders.xml
+
+Images will be stored to file, unless the -s3 option is specified, in which case the images will be stored to Amazon S3
+
 '''
 
 import argparse
@@ -30,6 +40,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("data_source_id", type=int, help="ID of data_source from which we are importing team data")
 parser.add_argument("env", choices=['local', 'dev', 'prod'], metavar="env", help="Environment (local/dev/prod)")
 parser.add_argument("input_file", help="File containing team data")
+parser.add_argument("-s3", "--storeToS3", help="Store images to Amazon S3, even if environment is not prod", action="store_true")
 parser.add_argument("-d", "--debug", help="Debug mode", action="store_true")
 args = parser.parse_args()
 
@@ -54,7 +65,6 @@ s3bucket = s3conn.get_bucket('storage.inplayrs.com', validate=False) # No need t
 playerDataSourceMappings = {}
 
 
-
 ################################## FUNCTIONS ################################### 
 
 def processPlayer(player):
@@ -66,10 +76,24 @@ def processPlayer(player):
         playerName = metadata.XPath.Player_Name(player)[0].text
         logger.info("Processing player external_id="+str(externalPlayerID)+", internal_id="+str(internalPlayerID)+", name="+playerName)
         
-        # Save player image to file
+        # Save player image
         if (len(metadata.XPath.Player_Image(player)) > 0 ):
-            logger.info("Saving player image")
-            IPUtils.saveBase64EncodedStringToFile(metadata.XPath.Player_Image(player)[0].text, "/var/tmp/inplayrs/files/images/players/"+str(internalPlayerID)+".jpg")
+            fileName = None
+            fileType = None
+            
+            if (args.storeToS3):
+                logger.info("Saving player image to Amazon S3")
+                fileName = 'images/players/'+str(internalPlayerID)+'.jpg'
+                fileType = IPUtils.saveBase64EncodedImageToAmazonS3(metadata.XPath.Player_Image(player)[0].text, fileName, s3bucket)
+            else:
+                logger.info("Saving player image to file")
+                fileName = '/var/tmp/inplayrs/files/images/players/'+str(internalPlayerID)+'.jpg'
+                fileType = IPUtils.saveBase64EncodedImageToFile(metadata.XPath.Player_Image(player)[0].text, fileName)
+                
+            if (fileType == None):
+                logger.warning("Invalid image found in tag, unable to save")
+            else:
+                logger.info("Successfully saved image. fileType="+fileType+", fileName="+fileName)
         else:
             logger.info("No player image found")
                                
@@ -94,25 +118,9 @@ cursor.close()
 
 # Load file and process each team
 context = etree.iterparse(args.input_file, events=('end',), tag='player')
-
 IPUtils.fast_iter(context, processPlayer)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-11
+# Close DB & Amazon S3 Connections
+db.close()
+s3conn.close()

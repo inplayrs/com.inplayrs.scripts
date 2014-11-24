@@ -6,6 +6,7 @@ Created on 23 Nov 2014
 from base64 import decodebytes
 from boto.s3.key import Key
 from io import BytesIO
+import imghdr
 
 #
 # fast_iter: Function to iterate through an xml file, applying a function to each element
@@ -23,6 +24,7 @@ def fast_iter(context, func):
 # saveByteStringToFile: Saves a byteString to a file on local disk 
 #    
 def saveByteStringToFile(byteString, fileName):
+    # wb = open file for writing in binary mode
     fh = open(fileName, "wb")
     fh.write(byteString)
     fh.close()
@@ -33,7 +35,23 @@ def saveByteStringToFile(byteString, fileName):
 #
 def saveBase64EncodedStringToFile(base64String, fileName):
     saveByteStringToFile(decodebytes(str(base64String).encode('ascii')), fileName)
+ 
     
+#
+# saveBase64EncodedImageToFile: Validates that the base64 encoded string is an image before saving to file
+# Returns the file type of the image saved
+#
+def saveBase64EncodedImageToFile(base64String, fileName):
+    byteString = decodebytes(str(base64String).encode('ascii'))
+    fileType = imghdr.what(None, byteString)
+    
+    # Only save to file if this is a valid image
+    if (fileType == None):
+        return fileType
+
+    saveByteStringToFile(byteString, fileName) 
+    return fileType 
+
 
 #
 # saveByteStringToAmazonS3: Saves a byteString to the specified Amazon S3 bucket
@@ -45,8 +63,27 @@ def saveByteStringToAmazonS3(byteString, fileName, s3bucket):
 
 
 #
-# saveBase64EncodedStringToAmazonS3: aves a base 64 encoded string to the specified Amazon S3 bucket
+# saveBase64EncodedStringToAmazonS3: saves a base 64 encoded string to the specified Amazon S3 bucket
 #
 def saveBase64EncodedStringToAmazonS3(base64String, fileName, s3bucket):
     saveByteStringToAmazonS3(decodebytes(str(base64String).encode('ascii')), fileName, s3bucket)
+
+
+#
+# saveBase64EncodedImageToAmazonS3: Validates that the base64 encoded string is an image before saving to the specified Amazon S3 bucket
+# Returns the file type of the image saved
+#
+def saveBase64EncodedImageToAmazonS3(base64String, fileName, s3bucket):
+    byteString = decodebytes(str(base64String).encode('ascii'))
+    fileType = imghdr.what(None, byteString)
+    
+    # Only save to file if this is a valid image
+    if (fileType == None):
+        return fileType
+    
+    saveByteStringToAmazonS3(decodebytes(str(base64String).encode('ascii')), fileName, s3bucket)
+    return fileType
+
+
+
 

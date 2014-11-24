@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 '''
 Created on 2 Nov 2014
-
-importTeamData.py - Loads team data from a file and populates into DB
-
 @author: chris
+
+Description: Loads team data from a file and populates into DB
+
+Steps:
+1. Load team data from http://www.goalserve.com/xml/teams.zip
+2. Unzip to a file (e.g. /var/tmp/inplayrs/files/teams.xml
+3. Process the file
+   e.g. importTeamData.py  1 1204 1 local /var/tmp/inplayrs/files/teams.xml
+
+Images will be stored to file, unless the -s3 option is specified, in which case the images will be stored to Amazon S3
 '''
 import argparse
 import logging
@@ -35,6 +42,7 @@ parser.add_argument("internal_comp_id", type=int, help="ID of internal competiti
 parser.add_argument("env", choices=['local', 'dev', 'prod'], metavar="env", help="Environment (local/dev/prod)")
 parser.add_argument("input_file", help="File containing team data")
 parser.add_argument("-d", "--debug", help="Debug mode", action="store_true")
+parser.add_argument("-s3", "--storeToS3", help="Store images to Amazon S3, even if environment is not prod", action="store_true")
 args = parser.parse_args()
 
 # Get logger and set level
@@ -64,8 +72,8 @@ players = {}
 teamDataSourceMappings = {}
 playerDataSourceMappings = {}
 
+
 ################################## FUNCTIONS ################################### 
-    
     
 #
 # Process team XML
@@ -117,10 +125,24 @@ def processTeam(team):
     else:
         logger.info("Team already exists in DB with team_id "+str(teams.get(teamName)))
 
-    # Save team image to Amazon S3
+    # Save team image
     if (len(metadata.XPath.Team_Image(team)) > 0 ):
-        logger.info("Saving team image")
-        IPUtils.saveBase64EncodedStringToAmazonS3(metadata.XPath.Team_Image(team)[0].text, 'images/teams/'+str(teams[teamName])+'.jpg', s3bucket)
+        fileName = None
+        fileType = None
+        
+        if (args.storeToS3):
+            logger.info("Saving team image to Amazon S3")
+            fileName = 'images/teams/'+str(teams[teamName])+'.jpg'
+            fileType = IPUtils.saveBase64EncodedImageToAmazonS3(metadata.XPath.Team_Image(team)[0].text, fileName, s3bucket)
+        else:
+            logger.info("Saving team image to file")
+            fileName = '/var/tmp/inplayrs/files/images/teams/'+str(teams[teamName])+'.jpg'
+            fileType = IPUtils.saveBase64EncodedImageToFile(metadata.XPath.Team_Image(team)[0].text, fileName)
+            
+        if (fileType == None):
+            logger.warning("Invalid image found in tag, unable to save")
+        else:
+            logger.info("Successfully saved image fileType="+fileType+", fileName="+fileName)
     else:
         logger.info("No team image found")
             
@@ -261,7 +283,6 @@ cursor.close()
 
 # Load file and process each team
 context = etree.iterparse(args.input_file, events=('end',), tag='team')
-
 IPUtils.fast_iter(context, processTeam)
 
 
