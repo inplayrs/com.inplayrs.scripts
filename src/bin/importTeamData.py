@@ -6,7 +6,6 @@ importTeamData.py - Loads team data from a file and populates into DB
 
 @author: chris
 '''
-
 import argparse
 import logging
 import os
@@ -14,10 +13,8 @@ import sys
 import inspect
 import pymysql            # MySQL DB connection
 from lxml import etree    # xml parsing
-from base64 import decodebytes
 from boto.s3.connection import S3Connection
-from boto.s3.key import Key
-from io import BytesIO
+
 
 # Add the parent directory to sys.path so we can import local modules
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
