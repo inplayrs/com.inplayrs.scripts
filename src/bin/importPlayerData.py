@@ -35,6 +35,9 @@ import config.Amazon
 import metadata.XPath
 import util.IPUtils as IPUtils
 
+# Get script name
+scriptName = str(os.path.basename(__file__)).replace(".py", "")
+
 # Parse command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("data_source_id", type=int, help="ID of data_source from which we are importing team data")
@@ -46,9 +49,7 @@ args = parser.parse_args()
 
 # Get logger and set level
 loggingLevel = (logging.DEBUG if args.debug else logging.INFO)
-logging.basicConfig(format='%(levelname)s: %(message)s', level=loggingLevel)
-logger = logging.getLogger()
-logger.setLevel(loggingLevel)
+logger = IPUtils.getLogger(scriptName, loggingLevel)
 
 # load DB config and connect to DB
 dbConfig = config.Config.dbConfig.get(args.env)

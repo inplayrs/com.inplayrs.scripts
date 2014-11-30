@@ -22,6 +22,8 @@ import pymysql            # MySQL DB connection
 from lxml import etree    # xml parsing
 from boto.s3.connection import S3Connection
 
+# Get script name
+scriptName = str(os.path.basename(__file__)).replace(".py", "")
 
 # Add the parent directory to sys.path so we can import local modules
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -45,11 +47,9 @@ parser.add_argument("-d", "--debug", help="Debug mode", action="store_true")
 parser.add_argument("-s3", "--storeToS3", help="Store images to Amazon S3, even if environment is not prod", action="store_true")
 args = parser.parse_args()
 
-# Get logger and set level
+# Get logger
 loggingLevel = (logging.DEBUG if args.debug else logging.INFO)
-logging.basicConfig(format='%(levelname)s: %(message)s', level=loggingLevel)
-logger = logging.getLogger()
-logger.setLevel(loggingLevel)
+logger = IPUtils.getLogger(scriptName, loggingLevel)
 
 # load DB config and connect to DB
 dbConfig = config.Config.dbConfig.get(args.env)

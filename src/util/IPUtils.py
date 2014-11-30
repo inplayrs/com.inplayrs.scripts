@@ -7,6 +7,14 @@ from base64 import decodebytes
 from boto.s3.key import Key
 from io import BytesIO
 import imghdr
+import logging
+from logging.handlers import TimedRotatingFileHandler
+import os
+import pwd
+
+# Import local modules
+import config.Config as Config
+
 
 #
 # fast_iter: Function to iterate through an xml file, applying a function to each element
@@ -85,5 +93,30 @@ def saveBase64EncodedImageToAmazonS3(base64String, fileName, s3bucket):
     return fileType
 
 
+#
+# getLogger: Creates log directory if it doesn't exist and returns a logger
+#
+def getLogger(scriptName, loggingLevel):
+    logDirectory = Config.LOGGING_BASE_DIRECTORY+'/'+scriptName
+    
+    # Replace UserName with name of user running the process
+    logDirectory = logDirectory.replace("{UserName}", pwd.getpwuid(os.getuid()).pw_name)
+    
+    # Create log directory if it doesn't already exist
+    if not os.path.exists(logDirectory):
+        os.makedirs(logDirectory)
+        
+    logPath = logDirectory+'/'+scriptName+'.log'
+    
+    logHandler = TimedRotatingFileHandler(logPath,
+                                          when=Config.LOGGING_INTERVAL_TYPE,
+                                          interval=Config.LOGGING_INTERVAL,
+                                          backupCount=Config.LOGGING_BACKUP_COUNT)
+    logHandler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
+    logHandler.setLevel(loggingLevel)
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=loggingLevel) # Logs to stdout
+    logger = logging.getLogger()
+    logger.addHandler(logHandler)
+    return logger
 
 

@@ -5,6 +5,14 @@ Created on 7 Sep 2014
 '''
 import metadata.Env
 
+
+LOGGING_BASE_DIRECTORY = '/var/tmp/{UserName}/inplayrs/logs/scripts'
+LOGGING_INTERVAL = 1
+LOGGING_INTERVAL_TYPE = 'midnight'
+LOGGING_BACKUP_COUNT = 14
+
+
+
 dbConfig = {
     "local": {"env" : metadata.Env.LOCAL,
               "host" : "localhost",
