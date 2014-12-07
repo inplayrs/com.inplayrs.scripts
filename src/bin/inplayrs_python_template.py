@@ -56,4 +56,9 @@ db.autocommit(1)
 logger.info("STARTING")
 
 
+
+
+# Close DB Connection
+db.close()
+
 logger.info("FINISHED")
