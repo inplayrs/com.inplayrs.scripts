@@ -48,7 +48,19 @@ db.autocommit(1)
 
 ################################## FUNCTIONS ################################### 
 
-
+#
+# closeConnections: Closes all connections - used before finishing script
+#
+def closeConnections():
+    # Close DB Connection
+    db.close()
+    
+#
+# closeConnectionsAndExit: Closes all connections and exits script - used when aborting script
+#
+def closeConnectionsAndExit():
+    closeConnections()
+    exit()
 
 
 ##################################### MAIN ##################################### 
@@ -58,7 +70,6 @@ logger.info("STARTING")
 
 
 
-# Close DB Connection
-db.close()
+closeConnections()
 
 logger.info("FINISHED")
