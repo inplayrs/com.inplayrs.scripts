@@ -31,8 +31,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir) 
 
 # Import local modules
-import config.Config
-import config.Amazon
+import config.Connections
 import metadata.XPath
 import util.IPUtils as IPUtils
 
@@ -52,7 +51,7 @@ loggingLevel = (logging.DEBUG if args.debug else logging.INFO)
 logger = IPUtils.getLogger(scriptName, loggingLevel)
 
 # load DB config and connect to DB
-dbConfig = config.Config.dbConfig.get(args.env)
+dbConfig = config.Connections.dbConfig.get(args.env)
 db = pymysql.connect(host=dbConfig['host'], port=dbConfig['port'], user=dbConfig['user'], passwd=dbConfig['pass'], db=dbConfig['db'])
 db.autocommit(1)
 

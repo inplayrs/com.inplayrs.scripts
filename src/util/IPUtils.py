@@ -13,8 +13,7 @@ import os
 import pwd
 
 # Import local modules
-import config.Config as Config
-
+import config.Settings
 
 #
 # fast_iter: Function to iterate through an xml file, applying a function to each element
@@ -97,7 +96,7 @@ def saveBase64EncodedImageToAmazonS3(base64String, fileName, s3bucket):
 # getLogger: Creates log directory if it doesn't exist and returns a logger
 #
 def getLogger(scriptName, loggingLevel):
-    logDirectory = Config.LOGGING_BASE_DIRECTORY+'/'+scriptName
+    logDirectory = config.Settings.LOGGING_BASE_DIRECTORY+'/'+scriptName
     
     # Replace UserName with name of user running the process
     logDirectory = logDirectory.replace("{UserName}", pwd.getpwuid(os.getuid()).pw_name)
@@ -109,9 +108,9 @@ def getLogger(scriptName, loggingLevel):
     logPath = logDirectory+'/'+scriptName+'.log'
     
     logHandler = TimedRotatingFileHandler(logPath,
-                                          when=Config.LOGGING_INTERVAL_TYPE,
-                                          interval=Config.LOGGING_INTERVAL,
-                                          backupCount=Config.LOGGING_BACKUP_COUNT)
+                                          when=config.Settings.LOGGING_INTERVAL_TYPE,
+                                          interval=config.Settings.LOGGING_INTERVAL,
+                                          backupCount=config.Settings.LOGGING_BACKUP_COUNT)
     logHandler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
     logHandler.setLevel(loggingLevel)
     logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=loggingLevel) # Logs to stdout

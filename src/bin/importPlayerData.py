@@ -30,8 +30,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir) 
 
 # Import local modules
-import config.Config
-import config.Amazon
+import config.Connections
 import metadata.XPath
 import util.IPUtils as IPUtils
 
@@ -52,12 +51,12 @@ loggingLevel = (logging.DEBUG if args.debug else logging.INFO)
 logger = IPUtils.getLogger(scriptName, loggingLevel)
 
 # load DB config and connect to DB
-dbConfig = config.Config.dbConfig.get(args.env)
+dbConfig = config.Connections.dbConfig.get(args.env)
 db = pymysql.connect(host=dbConfig['host'], port=dbConfig['port'], user=dbConfig['user'], passwd=dbConfig['pass'], db=dbConfig['db'])
 db.autocommit(1)
 
 # Create Amazon S3 connection (used for storing images)
-s3conn = S3Connection(config.Amazon.AWS_ACCESS_KEY_ID, config.Amazon.AWS_SECRET_ACCESS_KEY)
+s3conn = S3Connection(config.Connections.AWS_ACCESS_KEY_ID, config.Connections.AWS_SECRET_ACCESS_KEY)
 s3bucket = s3conn.get_bucket('storage.inplayrs.com', validate=False) # No need to validate as we know this bucket exists
 
 ############################### GLOBAL VARIABLES ############################### 

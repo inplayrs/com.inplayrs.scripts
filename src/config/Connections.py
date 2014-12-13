@@ -1,18 +1,10 @@
 '''
-Created on 7 Sep 2014
-
-@author: chris
+CONNECTIONS CONFIG FILE
 '''
+
 import metadata.Env
 
-
-LOGGING_BASE_DIRECTORY = '/var/tmp/{UserName}/inplayrs/logs/scripts'
-LOGGING_INTERVAL = 1
-LOGGING_INTERVAL_TYPE = 'midnight'
-LOGGING_BACKUP_COUNT = 14
-
-
-
+# Connection config for each environment
 dbConfig = {
     "local": {"env" : metadata.Env.LOCAL,
               "host" : "localhost",
@@ -37,5 +29,9 @@ dbConfig = {
 }
 
 
-        
-        
+# Access keys for user AdminScripts
+AWS_ACCESS_KEY_ID = "AKIAJ43EZFEVCZTRVTKA"
+AWS_SECRET_ACCESS_KEY = "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"
+
+# Key to connect to Mandrill to send emails
+MANDRILL_API_KEY = '8inFrylMNNZo7cBe2rNE8g'
