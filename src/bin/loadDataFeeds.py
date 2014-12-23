@@ -51,7 +51,9 @@ def loadDataFeed(feed):
     if not os.path.exists(filePath):
         os.makedirs(filePath)
     
-    # Download the file from `url` and save it locally under `file_name`:
+    # Download the XML file from the URL and save locally
+    # We first save to a temp file then rename, as the rename is atomic and prevents issues with
+    # Other processes attempting to read the file while downloading
     with urllib.request.urlopen(feed['url']) as response, open(tempFile, 'wb') as outFile:
         data = response.read() # a `bytes` object
         outFile.write(data)
@@ -66,6 +68,7 @@ logger.info("STARTING")
 
 while True:
     try:
+        # Cycle through all feeds of the given type and load them
         for feed in config.Settings.dataFeeds:
             if feed['type'] == args.type:
                 loadDataFeed(feed)

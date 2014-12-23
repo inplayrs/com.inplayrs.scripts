@@ -16,6 +16,7 @@ WELCOME_EMAIL_CHECK_INTERVAL = 300
 # Folders to store data imported from feeds
 BASE_DATA_FOLDER = '/var/tmp/{UserName}/inplayrs/data'
 
+# Interval for which to load XML data feeds (in seconds)
 dataFeedInterval = {'preplay' : 600, 'inplay' : 10}
 
 dataFeeds = [
