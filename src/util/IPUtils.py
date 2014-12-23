@@ -119,3 +119,30 @@ def getLogger(scriptName, loggingLevel):
     return logger
 
 
+#
+# getDataFeedFilePath: Returns the directory that a data feed will be downloaded to
+#
+def getDataFeedFilePath(feed):
+    # Replace UserName with name of user running the process
+    baseFolder = config.Settings.BASE_DATA_FOLDER.replace("{UserName}", pwd.getpwuid(os.getuid()).pw_name)
+    return baseFolder +'/' +feed['category']+'/'+feed['competition']
+
+
+#
+# dictToString: Converts a dictionary to a comma separated string
+#
+def dictToString(dict):
+    
+    dictString = ""
+    
+    firstItem = True
+    for k, v in dict.items():
+        if (firstItem):
+            dictString = k+'='+v
+            firstItem = False
+        else:
+            dictString = dictString+', '+k+'='+v
+            
+    return dictString
+            
+        
