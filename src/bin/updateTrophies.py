@@ -23,6 +23,7 @@ import config.Connections
 import util.IPUtils as IPUtils
 import metadata.State
 import metadata.Trophy
+import dao.MotdDao as MotdDao
 
 # Get script name
 scriptName = str(os.path.basename(__file__)).replace(".py", "")
@@ -319,8 +320,19 @@ def addUserTrophy(user_id, trophy_id):
     cursor = db.cursor()
     cursor.execute(insertUserTrophySql, (user_id, trophy_id))
     cursor.close()
+    
+    # Add MOTD for user
+    motdDao = MotdDao.MotdDao(db)
+    message = "Congratulations, you have achieved the "+metadata.Trophy.trophyNames[trophy_id]+" Trophy!"
+    logger.info("Adding motd: user_id="+str(user_id)+", message="+message)
+    try:
+        motdDao.create(user_id, message)
+    except pymysql.err.IntegrityError:
+        logger.error("Duplicate motd present, cannot insert motd. user_id="+user_id+", message="+message)
+    except pymysql.err.MySQLError:
+        logger.error("Error when ")
 
-
+    
 #
 # closeConnections: Closes all connections - used before finishing script
 #

@@ -10,7 +10,7 @@ PLAYED_50_GAMES = 8
 INVITED_5_PEOPLE = 9
 
 
-trophyNames = {GLOBAL_WIN : "Global Win",
+trophyNames = {GLOBAL_WIN : "Game Win",
                FRIEND_WIN : "Friend Win",
                H2H_WIN : "Head 2 Head Win",
                BANKED_3_TIMES : "Banked 3 Times",
