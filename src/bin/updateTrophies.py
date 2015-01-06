@@ -330,7 +330,7 @@ def addUserTrophy(user_id, trophy_id):
     except pymysql.err.IntegrityError:
         logger.error("Duplicate motd present, cannot insert")
     except pymysql.err.MySQLError:
-        logger.error("Error when ")
+        logger.error("Error when inserting motd")
 
     
 #
