@@ -328,7 +328,7 @@ def addUserTrophy(user_id, trophy_id):
     try:
         motdDao.create(user_id, message)
     except pymysql.err.IntegrityError:
-        logger.error("Duplicate motd present, cannot insert motd. user_id="+user_id+", message="+message)
+        logger.error("Duplicate motd present, cannot insert")
     except pymysql.err.MySQLError:
         logger.error("Error when ")
 
