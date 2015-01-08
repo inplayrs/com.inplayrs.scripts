@@ -5,7 +5,7 @@ Created on 6 Jan 2015
 '''
 
 # Handles interaction with motd table, which stores Messages Of The Day
-class MotdDao(object):
+class MotdDao:
 
     
     # Constructor

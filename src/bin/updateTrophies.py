@@ -23,7 +23,9 @@ import config.Connections
 import util.IPUtils as IPUtils
 import metadata.State
 import metadata.Trophy
+import metadata.GameType
 import dao.MotdDao as MotdDao
+import dao.GameDao as GameDao
 
 # Get script name
 scriptName = str(os.path.basename(__file__)).replace(".py", "")
@@ -246,6 +248,14 @@ def processPlayed50GamesTrophy(game_id):
 # processPerfectGameTrophy: Finds any users in this game who got all selections correct and awards trophy
 #
 def processPerfectGameTrophy(game_id):
+    # We do not process the Perfect Game trophy for Fantasy game type
+    gameDao = GameDao.GameDao(db)
+    gameType = gameDao.getGameType(game_id)
+    
+    if (gameType == metadata.GameType.FANTASY):
+        logger.info("Not processing "+metadata.Trophy.trophyNames[metadata.Trophy.PERFECT_GAME]+ " Trophy as this is a Fantasy game type")
+        return
+    
     perfectGameSql = '''SELECT
                             userCorrectAnswers.user
                         FROM
