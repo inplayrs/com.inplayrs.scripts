@@ -12,6 +12,8 @@ LOGGING_BACKUP_COUNT = 14
 # Check for new users to be sent welcome emails every 300 seconds (5mins)
 WELCOME_EMAIL_CHECK_INTERVAL = 300
 
+# Minimum number of users in pool for the friend win trophy
+MIN_USERS_IN_POOL_FOR_FRIEND_WIN_TROPHY = 4
 
 # Folders to store data imported from feeds
 BASE_DATA_FOLDER = '/var/tmp/{UserName}/inplayrs/data'

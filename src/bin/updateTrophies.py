@@ -166,11 +166,24 @@ def updateFirstCompWinTrophy(game_id):
 #
 def updateFirstFriendWinTrophy(game_id):
     # Get all winners of friend pools for this game
-    getPoolGameWinnersSql = "SELECT `user` FROM pool_game_leaderboard pgl WHERE pgl.game = %s AND pgl.rank = 1"
+    getPoolGameWinnersSql = '''SELECT 
+                                pgl.user,
+                                p.num_players,
+                                p.pool_id
+                            FROM 
+                                pool_game_leaderboard pgl 
+                                LEFT JOIN pool p on pgl.pool = p.pool_id
+                            WHERE pgl.game = %s AND pgl.rank = 1'''
     cursor = db.cursor()
     cursor.execute(getPoolGameWinnersSql, game_id)
     for row in cursor.fetchall():
-        grantUserTrophyIfNew(row[0], metadata.Trophy.FRIEND_WIN)
+        if (row[1] < config.Settings.MIN_USERS_IN_POOL_FOR_FRIEND_WIN_TROPHY):
+            logger.info("Not processing "+metadata.Trophy.trophyNames[metadata.Trophy.FRIEND_WIN]+" Trophy for user "+str(row[0])+" in pool "+str(row[2])+" as it only has "+str(row[1])+
+                        " members, which is less than the minimum of "+str(config.Settings.MIN_USERS_IN_POOL_FOR_FRIEND_WIN_TROPHY))
+        else:
+            logger.info("User "+str(row[0])+" is rank 1 in pool "+str(row[2])+" which has "+str(row[1])+
+                        " members. Checking if user has already been awarded "+metadata.Trophy.trophyNames[metadata.Trophy.FRIEND_WIN]+" Trophy")
+            grantUserTrophyIfNew(row[0], metadata.Trophy.FRIEND_WIN)
     cursor.close()
 
 
