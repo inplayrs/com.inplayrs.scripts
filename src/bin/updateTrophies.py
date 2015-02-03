@@ -265,8 +265,8 @@ def processPerfectGameTrophy(game_id):
     gameDao = GameDao.GameDao(db)
     gameType = gameDao.getGameType(game_id)
     
-    if (gameType == metadata.GameType.FANTASY):
-        logger.info("Not processing "+metadata.Trophy.trophyNames[metadata.Trophy.PERFECT_GAME]+ " Trophy as this is a Fantasy game type")
+    if (gameType == metadata.GameType.FANTASY or gameType == metadata.GameType.QUIZ):
+        logger.info("Not processing "+metadata.Trophy.trophyNames[metadata.Trophy.PERFECT_GAME]+ " Trophy as this is a Fantasy or Quiz game type")
         return
     
     perfectGameSql = '''SELECT
